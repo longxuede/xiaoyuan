@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>养个电子同学 · 小源 v3</title>
+<style>
+  :root{ --bg:#0f1226; --card:#1a1f3d; --line:#2b3260; --ink:#e9ecff; --sub:#9aa3d0;
+    --accent:#5b8cff; --good:#37d39b; --warn:#ffb020; --pink:#ff7aa2; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(1200px 600px at 50% -10%, #232a55, var(--bg));
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; display:flex; justify-content:center; padding:16px}
+  .app{width:min(960px,100%); background:var(--card); border:1px solid var(--line); border-radius:20px;
+    padding:16px 16px 12px; box-shadow:0 20px 60px rgba(0,0,0,.45)}
+  header{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+  h1{font-size:19px; margin:0}
+  .sub{color:var(--sub); font-size:12px; line-height:1.5}
+  .tabs{display:flex; gap:6px; background:#141936; border:1px solid var(--line); padding:4px; border-radius:12px}
+  .tabs button{background:transparent; border:0; padding:8px 13px; border-radius:9px; font-size:13px}
+  .tabs button.on{background:#2a3160; font-weight:700}
+  main{margin-top:13px}
+  .grid{display:grid; grid-template-columns: 280px 1fr; gap:16px}
+  @media (max-width:760px){ .grid{grid-template-columns:1fr} }
+  .stage{background:#141936; border:1px solid var(--line); border-radius:16px; padding:14px;
+    display:flex; flex-direction:column; align-items:center; gap:7px; min-height:290px; position:relative; overflow:hidden}
+  .stage:before{content:""; position:absolute; inset:-40% -20% auto; height:70%;
+    background:radial-gradient(circle at 50% 0%, rgba(91,140,255,.35), transparent 60%)}
+  .pet{width:158px; height:158px; display:flex; align-items:center; justify-content:center; position:relative}
+  .body{width:128px; height:128px; border-radius:46% 54% 52% 48% / 52% 46% 54% 48%;
+    background:linear-gradient(160deg,#79a6ff,#4a6ef0);
+    box-shadow:inset 0 -10px 20px rgba(0,0,0,.25), 0 12px 30px rgba(74,110,240,.35);
+    position:relative; animation:breathe 3.2s ease-in-out infinite; transition:width .3s,height .3s,background .3s}
+  @keyframes breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.02)}}
+  .eye{position:absolute; top:46px; width:18px; height:22px; background:#0f1226; border-radius:50%}
+  .eye.l{left:33px} .eye.r{right:33px}
+  .eye:after{content:""; position:absolute; top:4px; left:5px; width:6px; height:6px; background:#fff; border-radius:50%}
+  .mouth{position:absolute; bottom:38px; left:50%; transform:translateX(-50%);
+    width:34px; height:16px; border-bottom:4px solid #0f1226; border-radius:0 0 40px 40px}
+  .glasses{position:absolute; top:38px; left:50%; transform:translateX(-50%); width:102px; height:34px;
+    border:3px solid #0f1226; border-radius:10px; display:none}
+  .glasses:after{content:""; position:absolute; top:12px; left:50%; width:22px; height:3px; background:#0f1226; transform:translateX(-50%)}
+  .name{font-size:16px; font-weight:700}
+  .tag{font-size:12px; color:var(--sub); text-align:center; min-height:17px}
+  .todayClass{font-size:11px; color:var(--pink); text-align:center; line-height:1.45}
+  .panel{display:flex; flex-direction:column; gap:9px}
+  .bars{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .bar{background:#141936; border:1px solid var(--line); border-radius:12px; padding:8px 10px}
+  .bar .k{font-size:11.5px; color:var(--sub); display:flex; justify-content:space-between}
+  .track{height:8px; background:#0b0f24; border-radius:99px; margin-top:6px; overflow:hidden}
+  .fill{height:100%; width:0; background:linear-gradient(90deg,#5b8cff,#8f6bff); transition:width .35s ease}
+  .fill.good{background:linear-gradient(90deg,#37d39b,#5be0b0)}
+  .fill.warn{background:linear-gradient(90deg,#ffb020,#ffd36b)}
+  .actions{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+  button{border:1px solid var(--line); background:#20264d; color:var(--ink); padding:10px 9px; border-radius:12px;
+    font-size:13px; cursor:pointer; transition:.16s; font-family:inherit}
+  button:hover{background:#283066}
+  button:active{transform:scale(.99)}
+  button.primary{background:linear-gradient(160deg,#5b8cff,#4a6ef0); border-color:#4a6ef0}
+  button.danger{color:var(--pink)}
+  button:disabled{opacity:.42; cursor:not-allowed}
+  .log{background:#141936; border:1px solid var(--line); border-radius:12px; padding:8px 10px; font-size:11.5px;
+    color:var(--sub); min-height:54px}
+  .log div{margin:2px 0}
+  .ach{display:flex; gap:6px; flex-wrap:wrap}
+  .chip{font-size:11px; padding:4px 8px; border-radius:99px; border:1px solid var(--line); color:var(--sub)}
+  .chip.on{color:#0b1220; background:var(--good); border-color:var(--good); font-weight:700}
+  .card{background:#141936; border:1px solid var(--line); border-radius:14px; padding:12px 13px; margin-bottom:11px}
+  .card h3{margin:0 0 8px; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .stages{display:grid; grid-template-columns:repeat(3,1fr); gap:9px}
+  @media (max-width:620px){ .stages{grid-template-columns:1fr} }
+  .sc{background:#101534; border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; opacity:.45}
+  .sc.on{opacity:1; border-color:var(--good)}
+  .sc .emo{font-size:24px}
+  .sc .nm{font-weight:700; font-size:13px; margin-top:2px}
+  .sc .tp{font-size:11px; color:var(--sub); margin-top:2px}
+  .week{display:flex; gap:7px; flex-wrap:wrap}
+  .day{width:42px; text-align:center; font-size:10.5px; color:var(--sub)}
+  .dot{width:25px; height:25px; border-radius:50%; border:1px solid var(--line); margin:4px auto 0;
+    display:flex; align-items:center; justify-content:center; font-size:12px}
+  .dot.on{background:var(--good); border-color:var(--good); color:#0b1220; font-weight:700}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+  textarea{width:100%; margin-top:8px; background:#101534; color:var(--ink); border:1px solid var(--line);
+    border-radius:11px; padding:10px; font-size:12.5px; font-family:inherit; resize:vertical}
+  .courseRow{display:grid; grid-template-columns: 74px 1fr 62px 1fr 44px; gap:6px; align-items:center;
+    padding:6px 0; border-bottom:1px dashed #262c52}
+  .courseRow.draft{border-bottom:1px solid #2f3a6e}
+  @media (max-width:680px){ .courseRow{grid-template-columns: 64px 1fr; grid-auto-rows:auto} .courseRow .sp{display:none} }
+  .courseRow select,.courseRow input{background:#101534; color:var(--ink); border:1px solid var(--line);
+    border-radius:9px; padding:7px 8px; font-size:12px; font-family:inherit; width:100%}
+  .courseRow .del{background:transparent; border:0; color:var(--pink); font-size:12px; cursor:pointer}
+  .form{display:flex; gap:7px; flex-wrap:wrap; margin-top:9px; align-items:center}
+  .form select,.form input{background:#101534; color:var(--ink); border:1px solid var(--line); border-radius:10px;
+    padding:8px 9px; font-size:12.5px; font-family:inherit}
+  .form input{flex:1; min-width:110px}
+  .toast{position:fixed; left:50%; top:18px; transform:translate(-50%,-16px); background:#1a1f3d; border:1px solid var(--line);
+    padding:9px 15px; border-radius:12px; opacity:0; transition:.22s; pointer-events:none; font-size:13px; z-index:9}
+  .toast.on{opacity:1; transform:translate(-50%,0)}
+  footer{margin-top:10px; color:var(--sub); font-size:11px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap}
+  .hide{display:none !important}
+  .demoTag{font-size:11px; color:var(--warn)}
+  .ok{color:var(--good)} .warnc{color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>养个电子同学 · 小源 <span class="demoTag" id="demoTag"></span></h1>
+      <div class="sub">打卡 → 得饭 → 喂食 → 进化；课表可以截图识别，导入后还能改</div>
+    </div>
+    <div class="tabs">
+      <button class="on" data-tab="home">养它</button>
+      <button data-tab="album">图鉴</button>
+      <button data-tab="course">课表</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="tab-home" class="grid">
+      <div class="stage">
+        <div class="pet">
+          <div class="body" id="body">
+            <div class="eye l"></div><div class="eye r"></div>
+            <div class="glasses" id="glasses"></div>
+            <div class="mouth"></div>
+          </div>
+        </div>
+        <div class="name" id="stageName">电子豆</div>
+        <div class="tag" id="stageTip">一颗还没通电的豆子</div>
+        <div class="todayClass" id="todayClass"></div>
+      </div>
+
+      <div class="panel">
+        <div class="bars">
+          <div class="bar"><div class="k"><span>饱食度</span><span id="fullVal">0%</span></div>
+            <div class="track"><div class="fill" id="fullBar"></div></div></div>
+          <div class="bar"><div class="k"><span>心情</span><span id="moodVal">一般</span></div>
+            <div class="track"><div class="fill good" id="moodBar"></div></div></div>
+          <div class="bar"><div class="k"><span>连续打卡</span><span id="streakVal">0 天</span></div>
+            <div class="track"><div class="fill warn" id="streakBar"></div></div></div>
+          <div class="bar"><div class="k"><span>食物</span><span id="foodVal">0 份</span></div>
+            <div class="track"><div class="fill" id="foodBar"></div></div></div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="btnCheckIn">今日打卡（+2 饭）</button>
+          <button id="btnFeed">喂食（-1 饭）</button>
+          <button id="btnTreat">加餐（连续 3 天解锁）</button>
+          <button id="btnDemo">演示模式（快进）</button>
+        </div>
+
+        <div class="ach" id="ach"></div>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+
+    <section id="tab-album" class="hide">
+      <div class="card"><h3>形态图鉴</h3><div class="stages" id="stageCards"></div></div>
+      <div class="card"><h3>成就</h3><div class="ach" id="ach2"></div></div>
+      <div class="card"><h3>最近 7 天打卡</h3><div class="week" id="week"></div></div>
+      <div class="card"><h3>成长数据</h3><div class="sub" id="stats">—</div></div>
+    </section>
+
+    <section id="tab-course" class="hide">
+      <div class="card">
+        <h3>导入课表（三种方式，任选其一）</h3>
+        <div class="toolbar">
+          <button class="primary" id="btnPickImg">① 上传课表截图识别</button>
+          <button id="btnShowPaste">② 粘贴课表文字</button>
+          <button id="btnSample">③ 一键导入我的课表（示例）</button>
+          <button class="danger" id="btnClear">清空课表</button>
+        </div>
+        <input type="file" id="fileImg" accept="image/*" class="hide">
+        <div class="sub" style="margin-top:8px" id="ocrStatus">截图识别需要联网下载中文语言包（约 20MB），首次较慢；没网时用 ② 或 ③，一样能演示。</div>
+      </div>
+
+      <div class="card hide" id="pasteCard">
+        <h3>粘贴课表文字</h3>
+        <textarea id="pasteText" rows="5" placeholder="每行一门课，格式：周X 节次 课程名 @地点
+        
+周一 3-4 公共体育1 @蕙苑室外12号篮球场
+周三 1-2 学工办值班 @厚德604
+周四 5-6 大学英语1(视听说) @博济院A201"></textarea>
+        <div class="form">
+          <button class="primary" id="btnParse">解析为课程</button>
+          <span class="sub">识别结果会先放进下面的「待确认」，可以逐条改，确认后才进课表。</span>
+        </div>
+      </div>
+
+      <div class="card hide" id="draftCard">
+        <h3>待确认 <span class="sub" id="draftCount"></span></h3>
+        <div id="draftList"></div>
+        <div class="form">
+          <button class="primary" id="btnConfirm">全部确认导入</button>
+          <button id="btnDropDraft">放弃</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>我的课表 <span class="sub" id="courseCount"></span></h3>
+        <div id="courseList"></div>
+        <div class="form">
+          <select id="cDay">
+            <option value="1">周一</option><option value="2">周二</option><option value="3">周三</option>
+            <option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option>
+          </select>
+          <input id="cName" maxlength="16" placeholder="课程名">
+          <input id="cPeriod" maxlength="6" placeholder="节次 3-4">
+          <input id="cPlace" maxlength="20" placeholder="地点">
+          <button id="btnAddCourse">加入</button>
+        </div>
+        <div class="sub" style="margin-top:8px">改完自动保存；改完想立刻在首页看到，切到「养它」即可。</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>进度存在本机浏览器（localStorage），换设备不同步</span>
+    <span id="saveTip">未保存</span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* =========================================================================
+   养个电子同学 v3
+   - 养成：打卡 / 喂食 / 进化 / 图鉴（同 v2）
+   - 课表：截图 OCR、粘贴文字解析、示例导入，导入后逐条可改
+   - 全部数据存 localStorage
+   ========================================================================= */
+(function(){
+  "use strict";
+
+  var KEY = "xiaoyuan_save_v3";
+  var OLD_KEY = "xiaoyuan_save_v2";
+  var WEEK = ["周日","周一","周二","周三","周四","周五","周六"];
+  var STAGES = [
+    {name:"电子豆",   emo:"🌱", tip:"一颗还没通电的豆子"},
+    {name:"电子同学", emo:"📘", tip:"会自己上课、自己吃饭了"},
+    {name:"电子学长", emo:"🎓", tip:"眼镜一戴，谁都不爱"}
+  ];
+  var EVOLVE_AT = [4, 12];
+  var ACHS = [
+    {id:"first",  name:"第一次打卡"},
+    {id:"streak3",name:"连续 3 天"},
+    {id:"course", name:"填好课表"},
+    {id:"evolve1",name:"第一次进化"},
+    {id:"evolve2",name:"进化到学长"},
+    {id:"feed10", name:"喂满 10 次"}
+  ];
+
+  /* 用户本人的课表（照第 13 周截图整理，用于离线演示 / 一键导入） */
+  var SAMPLE = [
+    {day:3, name:"学工办值班",        period:"1-2",  place:"厚德604"},
+    {day:5, name:"高级语言程序设计",  period:"1-2",  place:"格致楼B301 雨花校区"},
+    {day:6, name:"词达人",            period:"1-2",  place:""},
+    {day:1, name:"公共体育1",         period:"3-4",  place:"蕙苑室外12号篮球场 雨花校区"},
+    {day:2, name:"高等数学A(1)",      period:"3-4",  place:"广智院B304 雨花校区"},
+    {day:3, name:"高级语言程序设计",  period:"3-4",  place:"广智院B109 雨花校区"},
+    {day:4, name:"高等数学A(1)",      period:"3-4",  place:"广智院B304 雨花校区"},
+    {day:5, name:"大学英语1(读写译)", period:"3-4",  place:"广智院A302 雨花校区"},
+    {day:2, name:"参观教育基地",      period:"5-6",  place:"弘道B"},
+    {day:4, name:"大学英语1(视听说)", period:"5-6",  place:"博济院A201 雨花校区"},
+    {day:1, name:"校团协值班",        period:"7-8",  place:"致远楼"},
+    {day:3, name:"大学生心理健康",    period:"7-8",  place:"广智院A306 雨花校区"},
+    {day:4, name:"大学语文",          period:"7-8",  place:"博雅院B507 雨花校区"},
+    {day:5, name:"学工办值班",        period:"7-8",  place:"厚德604"},
+    {day:3, name:"思想道德与法治",    period:"9-10", place:"广智院A103 雨花校区"}
+  ];
+
+  /* ---------- 工具 ---------- */
+  function pad(n){ return ("0" + n).slice(-2); }
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  function dateStr(offset){
+    var d = new Date(); d.setDate(d.getDate() + offset);
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+  function dayDiff(a, b){
+    if(!a || !b) return 999;
+    var pa = a.split("-"), pb = b.split("-");
+    var da = new Date(+pa[0], +pa[1]-1, +pa[2]);
+    var db = new Date(+pb[0], +pb[1]-1, +pb[2]);
+    return Math.round((db - da) / 86400000);
+  }
+  function weekdayNo(){                       // 周一=1 … 周日=7
+    var w = new Date().getDay();
+    return w === 0 ? 7 : w;
+  }
+
+  /* ---------- 存档（含 v2 迁移） ---------- */
+  function defaults(){
+    return {last:"", streak:0, food:3, full:0, mood:60, feed:0, stage:0,
+            ach:[], log:[], history:{}, courses:[], demo:false};
+  }
+  function load(){
+    var raw = null;
+    try{ raw = localStorage.getItem(KEY); }catch(e){}
+    if(raw){
+      try{ return Object.assign(defaults(), JSON.parse(raw)); }catch(e){}
+    }
+    // 老版本存档迁移
+    try{
+      var old = localStorage.getItem(OLD_KEY);
+      if(old){
+        var s = Object.assign(defaults(), JSON.parse(old));
+        s.courses = (s.courses || []).map(function(c){ return {id:c.id, day:c.day, name:c.name, period:"", place:""}; });
+        return s;
+      }
+    }catch(e){}
+    return defaults();
+  }
+  var state = load();
+
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify(state));
+      document.getElementById("saveTip").textContent = "已保存 " + new Date().toLocaleTimeString();
+    }catch(e){}
+  }
+
+  /* ---------- 通用 UI ---------- */
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg; el.classList.add("on");
+    clearTimeout(el._t);
+    el._t = setTimeout(function(){ el.classList.remove("on"); }, 1700);
+  }
+  function addLog(msg){
+    state.log.unshift(msg);
+    state.log = state.log.slice(0, 6);
+  }
+  function unlock(id){
+    if(state.ach.indexOf(id) === -1){
+      state.ach.push(id);
+      var a = ACHS.filter(function(x){ return x.id === id; })[0];
+      if(a) toast("解锁成就：" + a.name);
+    }
+  }
+  function el(id){ return document.getElementById(id); }
+
+  /* ---------- 课表：解析文字 ---------- */
+  function dayFromToken(ch){
+    if(ch === "一" || ch === "1") return 1;
+    if(ch === "二" || ch === "2") return 2;
+    if(ch === "三" || ch === "3") return 3;
+    if(ch === "四" || ch === "4") return 4;
+    if(ch === "五" || ch === "5") return 5;
+    if(ch === "六" || ch === "6") return 6;
+    if(ch === "日" || ch === "天" || ch === "7") return 7;
+    return 0;
+  }
+  // 每行形如：周一 3-4 公共体育1 @蕙苑室外篮球场
+  function parseText(text){
+    var out = [], lines = String(text || "").split(/\r?\n/);
+    lines.forEach(function(line){
+      var t = line.replace(/\u3000/g, " ").replace(/\s+/g, " ").trim();
+      if(!t) return;
+      var dm = t.match(/(?:周|星期|礼拜)\s*([一二三四五六日天1-7])/);
+      if(!dm) return;
+      var day = dayFromToken(dm[1]);
+      if(!day) return;
+      var rest = t.slice(dm.index + dm[0].length).trim();
+
+      var period = "";
+      var pm = rest.match(/^(\d+)\s*[-~—至到]\s*(\d+)\s*节?\s*/);
+      if(pm){ period = pm[1] + "-" + pm[2]; rest = rest.slice(pm[0].length); }
+      else {
+        var pm2 = rest.match(/^(\d+)\s*节\s*/) || rest.match(/^(\d+)\s+/);
+        if(pm2){ period = pm2[1]; rest = rest.slice(pm2[0].length); }
+      }
+
+      var name = rest, place = "";
+      var at = rest.split(/[@＠]/);
+      if(at.length > 1){ name = at[0].trim(); place = at.slice(1).join(" ").trim(); }
+      name = name.replace(/[\s,，;；]+$/, "").trim();
+      if(!name) return;
+      out.push({id: Date.now() + Math.random(), day: day, name: name, period: period, place: place});
+    });
+    return out;
+  }
+
+  /* ---------- 课表：待确认区 ---------- */
+  var draft = [];
+
+  function renderDraft(){
+    var box = el("draftList");
+    box.innerHTML = "";
+    el("draftCount").textContent = draft.length ? "（" + draft.length + " 门）" : "（空）";
+    el("draftCard").classList.toggle("hide", draft.length === 0);
+    draft.forEach(function(c, i){ box.appendChild(courseRow(c, i, true)); });
+  }
+
+  // 一行课程：星期 / 名称 / 节次 / 地点 / 删除
+  function courseRow(c, idx, isDraft){
+    var row = document.createElement("div");
+    row.className = "courseRow" + (isDraft ? " draft" : "");
+
+    var sel = document.createElement("select");
+    for(var d = 1; d <= 7; d++){
+      var o = document.createElement("option");
+      o.value = d; o.textContent = WEEK[d % 7];
+      if(+c.day === d) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.onchange = function(){ c.day = +sel.value; commit(isDraft); };
+
+    var nm = document.createElement("input");
+    nm.value = c.name; nm.maxLength = 16; nm.placeholder = "课程名";
+    nm.onchange = function(){ c.name = nm.value.trim() || c.name; commit(isDraft); };
+
+    var pd = document.createElement("input");
+    pd.value = c.period || ""; pd.maxLength = 6; pd.placeholder = "节次";
+    pd.onchange = function(){ c.period = pd.value.trim(); commit(isDraft); };
+
+    var pl = document.createElement("input");
+    pl.value = c.place || ""; pl.maxLength = 20; pl.placeholder = "地点";
+    pl.onchange = function(){ c.place = pl.value.trim(); commit(isDraft); };
+
+    var del = document.createElement("button");
+    del.className = "del"; del.textContent = "删除";
+    del.onclick = function(){
+      if(isDraft){ draft = draft.filter(function(x){ return x !== c; }); renderDraft(); }
+      else{
+        state.courses = state.courses.filter(function(x){ return x.id !== c.id; });
+        save(); renderCourses(); renderHome();
+      }
+    };
+
+    row.appendChild(sel); row.appendChild(nm); row.appendChild(pd); row.appendChild(pl); row.appendChild(del);
+    return row;
+  }
+
+  function commit(isDraft){
+    if(isDraft) return;                       // 待确认区改了不用存
+    unlock("course");
+    save(); renderHome(); renderStats();
+  }
+
+  /* ---------- 课表：渲染已导入 ---------- */
+  function renderCourses(){
+    var box = el("courseList");
+    box.innerHTML = "";
+    el("courseCount").textContent = "（" + state.courses.length + " 门）";
+    if(!state.courses.length){
+      box.innerHTML = '<div class="sub">还没有课程。点上面的 ①/②/③ 导入，或在下方手动加一门。</div>';
+      return;
+    }
+    var sorted = state.courses.slice().sort(function(a, b){ return a.day - b.day; });
+    sorted.forEach(function(c){ box.appendChild(courseRow(c, 0, false)); });
+  }
+
+  /* ---------- 课表：导入动作 ---------- */
+  function importCourses(list, append){
+    if(!append) state.courses = [];
+    list.forEach(function(c){
+      state.courses.push({id: Date.now() + Math.random(), day: +c.day, name: c.name, period: c.period || "", place: c.place || ""});
+    });
+    unlock("course");
+    save(); renderCourses(); renderHome(); renderStats();
+  }
+  function importSample(){
+    if(state.courses.length){
+      if(!confirm("已有 " + state.courses.length + " 门课，示例会追加进去，继续？")) return;
+    }
+    importCourses(SAMPLE, true);
+    toast("已导入示例课表（" + SAMPLE.length + " 门）");
+  }
+
+  /* ---------- 课表：OCR ---------- */
+  var ocrBusy = false;
+  function loadTesseract(cb){
+    if(window.Tesseract) return cb(null);
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js";
+    s.onload = function(){ cb(window.Tesseract ? null : new Error("加载后仍不可用")); };
+    s.onerror = function(){ cb(new Error("脚本加载失败")); };
+    document.head.appendChild(s);
+  }
+  function ocrImage(file){
+    if(ocrBusy) return;
+    ocrBusy = true;
+    var st = el("ocrStatus");
+    st.textContent = "正在准备识别引擎……首次需要联网下载中文语言包（约 20MB）。";
+    loadTesseract(function(err){
+      if(err){
+        st.textContent = "识别引擎加载失败（可能没网）。请改用 ② 粘贴文字 或 ③ 示例导入。";
+        st.className = "sub warnc";
+        ocrBusy = false; return;
+      }
+      st.textContent = "识别中……（图片越大越慢，约 10–40 秒）";
+      st.className = "sub";
+      window.Tesseract.recognize(file, "chi_sim", {
+        logger: function(m){
+          if(m.status === "recognizing text"){
+            st.textContent = "识别中…… " + Math.round((m.progress || 0) * 100) + "%";
+          }
+        }
+      }).then(function(r){
+        var text = (r && r.data && r.data.text) || "";
+        el("pasteText").value = text;
+        el("pasteCard").classList.remove("hide");
+        st.textContent = "识别完成：文字已填入下方「粘贴课表文字」，请把每行整理成「周X 节次 课程名 @地点」再点解析。";
+        st.className = "sub ok";
+        ocrBusy = false;
+      }).catch(function(e){
+        st.textContent = "识别失败：" + (e && e.message ? e.message : "未知错误") + "。请改用 ② 或 ③。";
+        st.className = "sub warnc";
+        ocrBusy = false;
+      });
+    });
+  }
+
+  /* ---------- 养成核心 ---------- */
+  function coursesToday(){
+    var w = weekdayNo();
+    return state.courses.filter(function(c){ return +c.day === w; });
+  }
+
+  function checkIn(){
+    var t = todayStr();
+    if(state.last === t){ toast("今天已经打过卡了，明天再来"); return; }
+    var gap = dayDiff(state.last, t);
+    state.streak = (gap === 1) ? state.streak + 1 : 1;
+
+    var today = coursesToday();
+    var hadClass = today.length > 0;
+    var gain = 2 + (state.streak >= 3 ? 1 : 0) + (hadClass ? 1 : 0);
+
+    state.last = t;
+    state.history[t] = true;
+    state.food += gain;
+    state.mood = Math.min(100, state.mood + 15);
+    state.full = Math.min(100, state.full + 10);
+
+    addLog("打卡 +" + gain + " 份饭" + (hadClass ? "（今天 " + today.length + " 节课，加餐）" : "") + "，连续 " + state.streak + " 天");
+    unlock("first");
+    if(state.streak >= 3) unlock("streak3");
+    save(); renderAll();
+  }
+
+  function feed(isTreat){
+    if(state.food <= 0){ toast("没饭了，先去打卡"); return; }
+    if(isTreat && state.streak < 3){ toast("连续打卡 3 天才能加餐"); return; }
+    state.food -= 1;
+    state.full = Math.min(100, state.full + (isTreat ? 35 : 20));
+    state.feed += 1;
+    state.mood = Math.min(100, state.mood + 5);
+    addLog((isTreat ? "加餐" : "喂食") + " +" + (isTreat ? 35 : 20) + " 饱食度");
+    if(state.feed >= 10) unlock("feed10");
+    checkEvolve();
+    save(); renderAll();
+  }
+
+  function checkEvolve(){
+    for(var i = STAGES.length - 1; i >= 1; i--){
+      if(state.feed >= EVOLVE_AT[i-1] && state.stage < i){
+        state.stage = i;
+        state.full = 100;
+        addLog("进化！现在是「" + STAGES[i].name + "」");
+        if(i === 1) unlock("evolve1");
+        if(i === 2) unlock("evolve2");
+        toast("进化成功：" + STAGES[i].name);
+      }
+    }
+  }
+
+  function decay(){
+    var t = todayStr();
+    if(state.last && dayDiff(state.last, t) >= 2 && state.full > 0){
+      state.full = Math.max(0, state.full - 15);
+      state.mood = Math.max(0, state.mood - 10);
+      addLog("好几天没打卡，小源有点蔫");
+      save();
+    }
+  }
+
+  function demo(){
+    for(var i = 3; i >= 1; i--){ state.history[dateStr(-i)] = true; }
+    state.streak = Math.max(state.streak, 3);
+    state.food += 12;
+    for(var k = 0; k < 12; k++){
+      if(state.food <= 0) break;
+      state.food -= 1; state.feed += 1;
+      state.full = Math.min(100, state.full + 20);
+    }
+    state.demo = true;
+    checkEvolve();
+    addLog("演示模式：已模拟 3 天打卡 + 12 次喂食");
+    el("demoTag").textContent = "（演示数据已写入）";
+    save(); renderAll();
+    toast("演示模式已执行，可现场看进化");
+  }
+
+  /* ---------- 渲染 ---------- */
+  function setBar(key, pct, text, cls){
+    el(key + "Val").textContent = text;
+    var b = el(key + "Bar");
+    b.style.width = pct + "%";
+    b.className = "fill" + (cls ? " " + cls : "");
+  }
+
+  function renderHome(){
+    var s = STAGES[state.stage] || STAGES[0];
+    el("stageName").textContent = s.name;
+    el("stageTip").textContent = s.tip;
+    el("glasses").style.display = state.stage >= 2 ? "block" : "none";
+
+    var body = el("body");
+    body.style.background = state.stage === 0 ? "linear-gradient(160deg,#9fd8ff,#5b8cff)"
+      : state.stage === 1 ? "linear-gradient(160deg,#79a6ff,#4a6ef0)"
+      : "linear-gradient(160deg,#8f6bff,#5b4af0)";
+    body.style.width  = (state.stage === 2 ? 142 : 128) + "px";
+    body.style.height = (state.stage === 2 ? 142 : 128) + "px";
+
+    var today = coursesToday();
+    if(today.length){
+      var names = today.slice(0, 3).map(function(c){
+        return c.name + (c.period ? "(" + c.period + ")" : "");
+      }).join("、");
+      el("todayClass").textContent = "今天 " + today.length + " 节课：" + names + (today.length > 3 ? " 等" : "");
+    }else{
+      el("todayClass").textContent = state.courses.length ? "今天没课，适合睡觉（不，适合打卡）" : "还没导入课表，去「课表」页试试截图识别";
+    }
+
+    setBar("full", state.full, state.full + "%");
+    setBar("mood", state.mood, state.mood >= 80 ? "开心" : state.mood >= 50 ? "一般" : "低落", state.mood >= 50 ? "good" : "warn");
+    setBar("streak", Math.min(100, state.streak * 10), state.streak + " 天", "warn");
+    setBar("food", Math.min(100, state.food * 10), state.food + " 份");
+
+    var btn = el("btnCheckIn");
+    btn.disabled = (state.last === todayStr());
+    btn.textContent = btn.disabled ? "今天已打卡" : "今日打卡（+2 饭）";
+    el("btnFeed").disabled = state.food <= 0;
+    el("btnTreat").disabled = state.food <= 0 || state.streak < 3;
+
+    renderChips("ach");
+    var logBox = el("log");
+    logBox.innerHTML = "";
+    if(!state.log.length) logBox.innerHTML = "<div>还没有记录，先打个卡试试。</div>";
+    state.log.forEach(function(t){ var d = document.createElement("div"); d.textContent = "· " + t; logBox.appendChild(d); });
+  }
+
+  function renderChips(id){
+    var box = el(id);
+    if(!box) return;
+    box.innerHTML = "";
+    ACHS.forEach(function(a){
+      var d = document.createElement("div");
+      d.className = "chip" + (state.ach.indexOf(a.id) >= 0 ? " on" : "");
+      d.textContent = a.name;
+      box.appendChild(d);
+    });
+  }
+
+  function renderAlbum(){
+    var box = el("stageCards");
+    box.innerHTML = "";
+    STAGES.forEach(function(s, i){
+      var d = document.createElement("div");
+      d.className = "sc" + (state.stage >= i ? " on" : "");
+      d.innerHTML = '<div class="emo">' + s.emo + '</div><div class="nm">' + s.name +
+        '</div><div class="tp">' + (i === 0 ? "初始形态" : "累计喂食 " + EVOLVE_AT[i-1] + " 次解锁") + '</div>';
+      box.appendChild(d);
+    });
+    renderChips("ach2");
+
+    var week = el("week");
+    week.innerHTML = "";
+    for(var i = 6; i >= 0; i--){
+      var ds = dateStr(-i);
+      var d2 = new Date(ds + "T00:00:00");
+      var item = document.createElement("div");
+      item.className = "day";
+      item.innerHTML = WEEK[d2.getDay()].replace("周", "") +
+        '<div class="dot' + (state.history[ds] ? " on" : "") + '">' + (state.history[ds] ? "✓" : "") + "</div>";
+      week.appendChild(item);
+    }
+    renderStats();
+  }
+
+  function renderStats(){
+    var byDay = {};
+    state.courses.forEach(function(c){ byDay[c.day] = (byDay[c.day] || 0) + 1; });
+    var busiest = "";
+    Object.keys(byDay).forEach(function(d){
+      if(!busiest || byDay[d] > byDay[busiest]) busiest = d;
+    });
+    el("stats").textContent = "累计喂食 " + state.feed + " 次 ｜ 阶段 " + STAGES[state.stage].name +
+      " ｜ 连续 " + state.streak + " 天 ｜ 课表 " + state.courses.length + " 门" +
+      (busiest ? "（最忙：" + WEEK[busiest % 7] + " " + byDay[busiest] + " 门）" : "");
+  }
+
+  function renderAll(){ renderHome(); renderAlbum(); renderCourses(); renderDraft(); }
+
+  /* ---------- 事件 ---------- */
+  document.querySelectorAll(".tabs button").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".tabs button").forEach(function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      ["home","album","course"].forEach(function(t){
+        el("tab-" + t).classList.toggle("hide", t !== b.dataset.tab);
+      });
+      renderAll();
+    });
+  });
+
+  el("btnCheckIn").addEventListener("click", checkIn);
+  el("btnFeed").addEventListener("click", function(){ feed(false); });
+  el("btnTreat").addEventListener("click", function(){ feed(true); });
+  el("btnDemo").addEventListener("click", function(){
+    if(confirm("演示模式会写入演示数据（模拟 3 天打卡 + 12 次喂食），确定？")) demo();
+  });
+
+  el("btnPickImg").addEventListener("click", function(){ el("fileImg").click(); });
+  el("fileImg").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(f) ocrImage(f);
+    e.target.value = "";
+  });
+  el("btnShowPaste").addEventListener("click", function(){
+    el("pasteCard").classList.toggle("hide");
+    el("pasteText").focus();
+  });
+  el("btnSample").addEventListener("click", importSample);
+  el("btnClear").addEventListener("click", function(){
+    if(!state.courses.length){ toast("课表本来就是空的"); return; }
+    if(confirm("清空全部 " + state.courses.length + " 门课程？")){
+      state.courses = []; save(); renderCourses(); renderHome(); renderStats(); toast("课表已清空");
+    }
+  });
+  el("btnParse").addEventListener("click", function(){
+    var list = parseText(el("pasteText").value);
+    if(!list.length){
+      toast("没解析出课程，检查是否每行以「周X」开头");
+      return;
+    }
+    draft = draft.concat(list);
+    renderDraft();
+    el("pasteCard").classList.add("hide");
+    toast("解析出 " + list.length + " 门，请在「待确认」里核对");
+  });
+  el("btnConfirm").addEventListener("click", function(){
+    if(!draft.length) return;
+    importCourses(draft, true);
+    var n = draft.length;
+    draft = []; renderDraft();
+    toast("已导入 " + n + " 门课程");
+  });
+  el("btnDropDraft").addEventListener("click", function(){
+    draft = []; renderDraft(); toast("已放弃本次解析");
+  });
+
+  el("btnAddCourse").addEventListener("click", function(){
+    var name = el("cName").value.trim();
+    if(!name){ toast("先写课程名"); return; }
+    state.courses.push({
+      id: Date.now() + Math.random(),
+      day: +el("cDay").value,
+      name: name,
+      period: el("cPeriod").value.trim(),
+      place: el("cPlace").value.trim()
+    });
+    el("cName").value = ""; el("cPeriod").value = ""; el("cPlace").value = "";
+    unlock("course");
+    save(); renderCourses(); renderHome(); renderStats();
+    toast("已加入课表");
+  });
+
+  // 启动
+  decay();
+  if(state.demo) el("demoTag").textContent = "（演示数据已写入）";
+  renderAll();
+  save();
+
+  // 便于自测/答辩演示时在控制台查状态（可删）
+  window.__app = { getState: function(){ return state; }, parseText: parseText, sample: SAMPLE };
+})();
+</script>
+</body>
+</html>
